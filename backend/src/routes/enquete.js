@@ -3,7 +3,7 @@ import Enquete from "../model/enquete.js";
 
 const router = Router();
 
-router.post("/cadastro", async (req, res) => {
+router.post("/", async (req, res) => {
     const { titulo, descricao, opcoes, dataLimite } = req.body;
 
     if (!titulo) {
@@ -41,6 +41,45 @@ router.post("/cadastro", async (req, res) => {
     const enquete = await Enquete.create(req.body);
 
     return res.status(201).json(enquete);
+});
+
+router.get("/", async (req, res) => {
+    const enquetes = await Enquete.find();
+
+    return res.status(200).json(enquetes);
+});
+
+router.post("/:id/votar", async (req, res) => {
+    const { id } = req.params;
+    const { opcaoId } = req.body;
+
+    if (!opcaoId) {
+        return res.status(400).json({
+            message: "ID da opção é obrigatório"
+        });
+    }
+    
+    const enquete = await Enquete.findById(id);
+    if (!enquete) {
+        return res.status(404).json({
+            message: "Enquete não encontrada"
+        });
+    }
+
+    const opcao = enquete.opcoes.find((o) => o.id === opcaoId);
+    if (!opcao) {
+        return res.status(404).json({
+            message: "Opção não encontrada"
+        });
+    }
+
+    opcao.votos++;
+
+    await enquete.save();
+
+    return res.status(200).json({
+        message: "Voto registrado com sucesso"
+    });
 });
 
 export default router;
