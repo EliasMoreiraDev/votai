@@ -36,6 +36,6 @@ app.use("/enquete", enqueteRoutes);
 
 await connectDatabase();
 
-app.listen(3000, () => {
-  console.log("Servidor rodando na porta 3000");
+app.listen(7340, () => {
+  console.log("Servidor rodando na porta 7340");
 });
