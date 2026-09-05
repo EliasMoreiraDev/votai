@@ -2,7 +2,16 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDatabase from "./src/config/config.js"
 import cors from 'cors'
+import enqueteRoutes from "./src/routes/enquete.js";
 dotenv.config();
+const app = express();
+
+const whitelist = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:3001",
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -17,16 +26,16 @@ const corsOptions = {
   credentials: true // Permite o envio de cookies/headers de autenticação se necessário
 };
 
-// Aplica o middleware com a função de callback
+
 app.use(cors(corsOptions));
 
-const app = express();
+
 
 app.use(express.json());
+app.use("/enquete", enqueteRoutes);
 
 await connectDatabase();
 
 app.listen(3000, () => {
   console.log("Servidor rodando na porta 3000");
 });
-
