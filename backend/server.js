@@ -22,7 +22,7 @@ const corsOptions = {
       callback(new Error('Não permitido pelo CORS')); // Bloqueia o acesso
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true // Permite o envio de cookies/headers de autenticação se necessário
 };
 
@@ -33,6 +33,7 @@ app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use("/enquete", enqueteRoutes);
+app.use("/enquetes", enqueteRoutes);
 
 await connectDatabase();
 
