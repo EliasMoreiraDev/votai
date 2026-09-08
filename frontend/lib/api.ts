@@ -31,18 +31,26 @@ type OpcoesFetch = {
 /**
  * Helper para extrair a mensagem de erro de forma segura, evitando [object Object]
  */
-function extrairMensagemSegura(json: any, status: number): string {
-  if (json?.errors && Array.isArray(json.errors) && json.errors.length > 0) {
-    const primeiroErro = json.errors[0];
-    return typeof primeiroErro === "string" ? json.errors.join(", ") : JSON.stringify(primeiroErro);
-  }
-  
-  if (json?.message) {
-    return typeof json.message === "string" ? json.message : JSON.stringify(json.message);
-  }
+function extrairMensagemSegura(json: unknown, status: number): string {
+  if (typeof json === "object" && json !== null) {
+    const resposta = json as {
+      errors?: unknown;
+      message?: unknown;
+      error?: unknown;
+    };
 
-  // Fallbacks comuns de middlewares node
-  if (json?.error && typeof json.error === "string") return json.error;
+    if (Array.isArray(resposta.errors) && resposta.errors.length > 0) {
+      const primeiroErro = resposta.errors[0];
+      return typeof primeiroErro === "string" ? resposta.errors.join(", ") : JSON.stringify(primeiroErro);
+    }
+
+    if (resposta.message) {
+      return typeof resposta.message === "string" ? resposta.message : JSON.stringify(resposta.message);
+    }
+
+    // Fallbacks comuns de middlewares node
+    if (typeof resposta.error === "string") return resposta.error;
+  }
 
   return `A API respondeu com status ${status}. (Não autorizado ou token inválido)`;
 }
@@ -81,7 +89,7 @@ export async function fetchApi<T>(
   let json;
   try {
     json = await resposta.json();
-  } catch (err) {
+  } catch {
     // Se a resposta não for JSON (ex: erro 502/nginx de HTML puro), protege a aplicação
     throw new ErroApi(`Falha inesperada do servidor (Status ${resposta.status}).`, resposta.status);
   }
