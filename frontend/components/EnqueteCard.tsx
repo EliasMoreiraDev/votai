@@ -7,7 +7,7 @@ import {
   CardTitle,
   CardContent,
   CardFooter,
-  CardDescription
+  CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ export interface EnqueteOpcao {
 export interface EnqueteComentario {
   _id: string;
   texto: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface EnqueteProps {
@@ -36,7 +36,15 @@ export interface EnqueteProps {
   onComentario?: (texto: string) => Promise<void>;
 }
 
-export function EnqueteCard({ titulo, descricao, dataLimite, opcoes, comentarios = [], onVoto, onComentario }: EnqueteProps) {
+export function EnqueteCard({
+  titulo,
+  descricao,
+  dataLimite,
+  opcoes,
+  comentarios = [],
+  onVoto,
+  onComentario,
+}: EnqueteProps) {
   const [selectedOpcao, setSelectedOpcao] = useState<string | null>(null);
   const [mostrarComentarios, setMostrarComentarios] = useState(false);
   const [textoComentario, setTextoComentario] = useState("");
@@ -75,8 +83,8 @@ export function EnqueteCard({ titulo, descricao, dataLimite, opcoes, comentarios
     <Card className="w-full max-w-md border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white flex flex-col justify-between">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <Badge className="flex items-center gap-1 o-xs font-normal o-amber-50 bg-blue-900">
-            <Clock className="w-4 h-4 text-amber-50" />
+          <Badge className="flex items-center gap-1 font-normal text-amber-50 bg-blue-900">
+            <Clock className="w-3.5 h-3.5 text-amber-50" />
             <span className="text-xs font-bold">{dataLimite}</span>
           </Badge>
           <span className="text-xs text-slate-400 font-bold">
@@ -156,22 +164,29 @@ export function EnqueteCard({ titulo, descricao, dataLimite, opcoes, comentarios
           aria-expanded={mostrarComentarios}
           onClick={() => setMostrarComentarios((mostrar) => !mostrar)}
         >
-          <MessageCircle />
-          {mostrarComentarios ? "Ocultar Comentários" : `Ver Comentários (${comentarios.length})`}
+          <MessageCircle className="w-4 h-4 mr-2" />
+          {mostrarComentarios
+            ? "Ocultar Comentários"
+            : `Ver Comentários (${comentarios.length})`}
         </Button>
 
         {mostrarComentarios && (
           <div className="w-full space-y-4">
             <div className="max-h-48 space-y-2 overflow-y-auto">
               {comentarios.length === 0 ? (
-                <p className="text-center text-sm text-slate-500">
+                <p className="text-center text-sm text-slate-500 py-2">
                   Nenhum comentário ainda.
                 </p>
               ) : (
                 comentarios.map((comentario) => (
-                  <div key={comentario._id} className="rounded-lg bg-white p-3 ring-1 ring-slate-200">
+                  <div
+                    key={comentario._id}
+                    className="rounded-lg bg-slate-50 p-3 ring-1 ring-slate-200"
+                  >
                     <p className="text-xs font-bold text-blue-900">Anônimo</p>
-                    <p className="mt-1 break-words text-sm text-slate-700">{comentario.texto}</p>
+                    <p className="mt-1 break-words text-sm text-slate-700">
+                      {comentario.texto}
+                    </p>
                   </div>
                 ))
               )}

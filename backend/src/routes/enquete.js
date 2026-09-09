@@ -118,6 +118,44 @@ router.post("/:id/votar", async (req, res) => {
     return res.status(200).json({
         message: "Voto registrado com sucesso"
     });
+
+});
+router.get("/:id/comentarios", async (req, res) => {
+    const { id } = req.params;
+
+    const enquete = await Enquete.findById(id);
+    if (!enquete) {
+        return res.status(404).json({
+            message: "Enquete não encontrada"
+        });
+    }
+
+    return res.status(200).json(enquete.comentarios);
+});
+
+router.post("/:id/comentarios", async (req, res) => {
+    const { id } = req.params;
+    const { texto } = req.body;
+
+    if (!texto || typeof texto !== "string" || !texto.trim()) {
+        return res.status(400).json({
+            message: "Comentário é obrigatório"
+        });
+    }
+
+    const enquete = await Enquete.findById(id);
+    if (!enquete) {
+        return res.status(404).json({
+            message: "Enquete não encontrada"
+        });
+    }
+
+    enquete.comentarios.push({ texto: texto.trim() });
+    await enquete.save();
+
+    const comentario = enquete.comentarios[enquete.comentarios.length - 1];
+
+    return res.status(201).json(comentario);
 });
 
 export default router;
