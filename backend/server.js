@@ -25,7 +25,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true // Permite o envio de cookies/headers de autenticação se necessário
 };
-
+//teste
 
 app.use(cors(corsOptions));
 
