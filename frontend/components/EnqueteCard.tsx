@@ -11,12 +11,18 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle2, Circle } from "lucide-react";
+import { Clock, CheckCircle2, Circle, MessageCircle } from "lucide-react";
 
 export interface EnqueteOpcao {
   _id: string;
   texto: string;
   votos: number;
+}
+
+export interface EnqueteComentario {
+  _id: string;
+  texto: string;
+  createdAt: string;
 }
 
 export interface EnqueteProps {
@@ -25,11 +31,16 @@ export interface EnqueteProps {
   descricao?: string;
   dataLimite: string;
   opcoes: EnqueteOpcao[];
+  comentarios?: EnqueteComentario[];
   onVoto?: (opcaoId: string) => void;
+  onComentario?: (texto: string) => Promise<void>;
 }
 
-export function EnqueteCard({ _id, titulo, descricao, dataLimite, opcoes, onVoto }: EnqueteProps) {
+export function EnqueteCard({ titulo, descricao, dataLimite, opcoes, comentarios = [], onVoto, onComentario }: EnqueteProps) {
   const [selectedOpcao, setSelectedOpcao] = useState<string | null>(null);
+  const [mostrarComentarios, setMostrarComentarios] = useState(false);
+  const [textoComentario, setTextoComentario] = useState("");
+  const [enviandoComentario, setEnviandoComentario] = useState(false);
 
   const totalVotos = opcoes.reduce((acc, curr) => acc + curr.votos, 0);
 
@@ -39,6 +50,24 @@ export function EnqueteCard({ _id, titulo, descricao, dataLimite, opcoes, onVoto
     setSelectedOpcao(opcaoId);
     if (onVoto) {
       onVoto(opcaoId);
+    }
+  };
+
+  const handleComentario = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const texto = textoComentario.trim();
+    if (!texto || !onComentario) return;
+
+    try {
+      setEnviandoComentario(true);
+      await onComentario(texto);
+      setTextoComentario("");
+    } catch (error) {
+      console.error("Erro ao registrar comentário:", error);
+      alert("Não foi possível registrar seu comentário. Tente novamente.");
+    } finally {
+      setEnviandoComentario(false);
     }
   };
 
@@ -119,13 +148,56 @@ export function EnqueteCard({ _id, titulo, descricao, dataLimite, opcoes, onVoto
         })}
       </CardContent>
 
-      <CardFooter className="pt-0">
+      <CardFooter className="pt-0 flex-col gap-4">
         <Button
+          type="button"
           variant="outline"
           className="w-full bg-blue-900 text-sm font-bold text-amber-50 hover:text-white hover:bg-blue-950 border-transparent"
+          aria-expanded={mostrarComentarios}
+          onClick={() => setMostrarComentarios((mostrar) => !mostrar)}
         >
-          Ver Comentários
+          <MessageCircle />
+          {mostrarComentarios ? "Ocultar Comentários" : `Ver Comentários (${comentarios.length})`}
         </Button>
+
+        {mostrarComentarios && (
+          <div className="w-full space-y-4">
+            <div className="max-h-48 space-y-2 overflow-y-auto">
+              {comentarios.length === 0 ? (
+                <p className="text-center text-sm text-slate-500">
+                  Nenhum comentário ainda.
+                </p>
+              ) : (
+                comentarios.map((comentario) => (
+                  <div key={comentario._id} className="rounded-lg bg-white p-3 ring-1 ring-slate-200">
+                    <p className="text-xs font-bold text-blue-900">Anônimo</p>
+                    <p className="mt-1 break-words text-sm text-slate-700">{comentario.texto}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <form className="space-y-2" onSubmit={handleComentario}>
+              <textarea
+                value={textoComentario}
+                onChange={(event) => setTextoComentario(event.target.value)}
+                placeholder="Escreva um comentário anônimo"
+                aria-label="Comentário anônimo"
+                rows={3}
+                maxLength={500}
+                disabled={enviandoComentario}
+                className="w-full resize-none rounded-lg border border-slate-300 bg-white p-3 text-sm text-slate-800 outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+              />
+              <Button
+                type="submit"
+                className="w-full bg-blue-900 text-amber-50 hover:bg-blue-950"
+                disabled={enviandoComentario || !textoComentario.trim()}
+              >
+                {enviandoComentario ? "Enviando..." : "Comentar anonimamente"}
+              </Button>
+            </form>
+          </div>
+        )}
       </CardFooter>
     </Card>
   );
