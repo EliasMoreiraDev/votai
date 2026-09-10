@@ -30,6 +30,12 @@ const enqueteSchema = new mongoose.Schema(
             trim: true,
         },
 
+        dataLimite: {
+            type: Date,
+            required: true,
+            
+        },
+
         opcoes: [{
             texto: {type: String,  required: true},
             votos: {type: Number, default: 0}

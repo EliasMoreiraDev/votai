@@ -24,7 +24,12 @@ router.post("/", async (req, res) => {
         });
     }
 
-    const data = new Date(dataLimite);
+    let data;
+    if (dataLimite.includes("T")) {
+        data = new Date(dataLimite);
+    } else {
+        data = new Date(`${dataLimite}T23:59:59.999Z`);
+    }
 
     if (isNaN(data.getTime())) {
         return res.status(400).json({
@@ -38,7 +43,12 @@ router.post("/", async (req, res) => {
         });
     }
 
-    const enquete = await Enquete.create(req.body);
+    const enquete = await Enquete.create({
+        titulo,
+        descricao,
+        dataLimite: data,
+        opcoes,
+    });
 
     return res.status(201).json(enquete);
 });

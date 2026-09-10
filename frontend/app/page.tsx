@@ -134,10 +134,12 @@ export default function HomePage() {
         body: {
           titulo: novoTitulo.trim(),
           descricao: novaDescricao.trim() || undefined,
-          dataLimite: novaDataLimite,
+          dataLimite: new Date(novaDataLimite).toISOString(),
           opcoes: opcoesValidas.map((texto) => ({ texto })),
         },
       });
+
+      console.log("DEBUG: Enquete criada pelo backend:", novaEnquete);
 
       // Insere no topo da listagem
       setEnquetes((prev) => [novaEnquete, ...prev]);
@@ -150,17 +152,33 @@ export default function HomePage() {
     }
   };
 
-  function calcularDiasRestantes(dataLimite: string): string {
+function calcularDiasRestantes(dataLimite: string): string {
+    if (!dataLimite) return "Sem prazo";
+
     const hoje = new Date();
     const limite = new Date(dataLimite);
-    const diferenca = limite.getTime() - hoje.getTime();
-    const diasRestantes = Math.ceil(diferenca / (1000 * 60 * 60 * 24));
 
-    if (diasRestantes < 0) {
+    if (isNaN(limite.getTime())) {
+      console.error("Formato de data inválido recebido:", dataLimite);
+      return "Data inválida";
+    }
+
+    const diferenca = limite.getTime() - hoje.getTime();
+    
+    if (diferenca < 0) {
       return "Enquete encerrada";
-    } else if (diasRestantes === 0) {
-      return "Último dia para votar";
-    } else if (diasRestantes === 1) {
+    }
+
+    const horasRestantes = diferenca / (1000 * 60 * 60);
+    
+    if (horasRestantes < 24) {
+      const horasInt = Math.floor(horasRestantes);
+      if (horasInt === 0) return "Encerra em menos de 1 hora";
+      return `Encerra em ${horasInt} hora${horasInt > 1 ? 's' : ''}`;
+    }
+
+    const diasRestantes = Math.ceil(horasRestantes / 24);
+    if (diasRestantes === 1) {
       return "1 dia restante";
     } else {
       return `${diasRestantes} dias restantes`;
@@ -174,7 +192,6 @@ export default function HomePage() {
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-3xl font-extrabold text-white tracking-wider">VOTAÍ</h1>
           
-          {/* Botão Azul */}
           <Button
             onClick={() => setModalAberto(true)}
             className="bg-blue-800 hover:bg-blue-700 text-amber-50 font-bold border border-blue-600/50 shadow-sm transition-colors"
@@ -186,7 +203,7 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Grid de Enquetes */}
+
         <div className="grid grid-cols-1 items-start md:grid-cols-2 lg:grid-cols-3 gap-6">
           {enquetes.map((enquete) => (
             <EnqueteCard
@@ -259,7 +276,7 @@ export default function HomePage() {
                   <Calendar className="w-4 h-4 text-blue-900" /> Data Limite *
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   required
                   value={novaDataLimite}
                   onChange={(e) => setNovaDataLimite(e.target.value)}
