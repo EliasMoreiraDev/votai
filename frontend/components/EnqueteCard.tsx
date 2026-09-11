@@ -149,8 +149,8 @@ export function EnqueteCard({
         {opcoes.map((opcao) => {
           const isSelected = selectedOpcao === opcao._id;
           const percentage =
-            totalVotos > 0 ? Math.round((opcao.votos / totalVotos) * 100) : 0;
-
+          totalVotos > 0 ? Math.round((opcao.votos / totalVotos) * 100) : 0;
+          const vencedor = opcao.votos
 
 
           return (

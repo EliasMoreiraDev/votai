@@ -150,11 +150,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Cabeçalho */}
+
       <header className="p-5 bg-blue-950 shadow-md">
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-3xl font-extrabold text-white tracking-wider">VOTAÍ</h1>
-          
+
           <Button
             onClick={() => setModalAberto(true)}
             className="bg-blue-800 hover:bg-blue-700 text-amber-50 font-bold border border-blue-600/50 shadow-sm transition-colors"
@@ -166,26 +166,29 @@ export default function HomePage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
-
-        <div className="grid grid-cols-1 items-start md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6">
           {enquetes.map((enquete) => (
-            <EnqueteCard
+            <div
               key={enquete._id}
-              _id={enquete._id}
-              titulo={enquete.titulo}
-              descricao={enquete.descricao}
-              dataLimite={enquete.dataLimite}
-              opcoes={enquete.opcoes}
-              comentarios={enquete.comentarios}
-              onVoto={(opcaoId) => handleVotar(enquete._id, opcaoId)}
-              onComentario={(texto) => handleComentar(enquete._id, texto)}
-            />
+              className="mb-6 break-inside-avoid"
+            >
+              <EnqueteCard
+                _id={enquete._id}
+                titulo={enquete.titulo}
+                descricao={enquete.descricao}
+                dataLimite={enquete.dataLimite}
+                opcoes={enquete.opcoes}
+                comentarios={enquete.comentarios}
+                onVoto={(opcaoId) => handleVotar(enquete._id, opcaoId)}
+                onComentario={(texto) => handleComentar(enquete._id, texto)}
+              />
+            </div>
           ))}
         </div>
       </main>
 
       {modalAberto && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={handleFecharModal}
         >
@@ -193,7 +196,7 @@ export default function HomePage() {
             className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-      
+
             <button
               onClick={handleFecharModal}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-700 transition-colors"
