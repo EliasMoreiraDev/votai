@@ -82,7 +82,14 @@ router.post("/:id/comentarios", async (req, res) => {
         });
     }
 
+
     const enquete = await Enquete.findById(id);
+
+    if(enquete.dataLimite < new Date()){
+        return res.status(400).json({
+            message: "A data limite da votação já foi atingida"
+        })
+    }
     if (!enquete) {
         return res.status(404).json({
             message: "Enquete não encontrada"

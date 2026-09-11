@@ -10,7 +10,6 @@ export default function HomePage() {
   const [enquetes, setEnquetes] = useState<EnqueteProps[]>([]);
   const [modalAberto, setModalAberto] = useState(false);
 
-  // Estados do formulário de criação de enquete
   const [novoTitulo, setNovoTitulo] = useState("");
   const [novaDescricao, setNovaDescricao] = useState("");
   const [novaDataLimite, setNovaDataLimite] = useState("");
@@ -31,7 +30,7 @@ export default function HomePage() {
       });
   }, []);
 
-  // --- Função para Votar ---
+
   const handleVotar = async (enqueteId: string, opcaoId: string) => {
     const enquetesAnteriores = [...enquetes];
 
@@ -63,7 +62,6 @@ export default function HomePage() {
     }
   };
 
-  // --- Função para Comentar ---
   const handleComentar = async (enqueteId: string, texto: string) => {
     const comentario = await fetchApi<NonNullable<EnqueteProps["comentarios"]>[number]>(
       `/enquete/${enqueteId}/comentarios`,
@@ -85,7 +83,6 @@ export default function HomePage() {
     );
   };
 
-  // --- Funções de Criação de Enquete ---
   const handleAdicionarOpcao = () => {
     setOpcoes([...opcoes, ""]);
   };
@@ -141,7 +138,6 @@ export default function HomePage() {
 
       console.log("DEBUG: Enquete criada pelo backend:", novaEnquete);
 
-      // Insere no topo da listagem
       setEnquetes((prev) => [novaEnquete, ...prev]);
       handleFecharModal();
     } catch (error) {
@@ -151,39 +147,6 @@ export default function HomePage() {
       setSalvandoEnquete(false);
     }
   };
-
-function calcularDiasRestantes(dataLimite: string): string {
-    if (!dataLimite) return "Sem prazo";
-
-    const hoje = new Date();
-    const limite = new Date(dataLimite);
-
-    if (isNaN(limite.getTime())) {
-      console.error("Formato de data inválido recebido:", dataLimite);
-      return "Data inválida";
-    }
-
-    const diferenca = limite.getTime() - hoje.getTime();
-    
-    if (diferenca < 0) {
-      return "Enquete encerrada";
-    }
-
-    const horasRestantes = diferenca / (1000 * 60 * 60);
-    
-    if (horasRestantes < 24) {
-      const horasInt = Math.floor(horasRestantes);
-      if (horasInt === 0) return "Encerra em menos de 1 hora";
-      return `Encerra em ${horasInt} hora${horasInt > 1 ? 's' : ''}`;
-    }
-
-    const diasRestantes = Math.ceil(horasRestantes / 24);
-    if (diasRestantes === 1) {
-      return "1 dia restante";
-    } else {
-      return `${diasRestantes} dias restantes`;
-    }
-  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -211,7 +174,7 @@ function calcularDiasRestantes(dataLimite: string): string {
               _id={enquete._id}
               titulo={enquete.titulo}
               descricao={enquete.descricao}
-              dataLimite={calcularDiasRestantes(enquete.dataLimite)}
+              dataLimite={enquete.dataLimite}
               opcoes={enquete.opcoes}
               comentarios={enquete.comentarios}
               onVoto={(opcaoId) => handleVotar(enquete._id, opcaoId)}
@@ -221,7 +184,6 @@ function calcularDiasRestantes(dataLimite: string): string {
         </div>
       </main>
 
-      {/* POPUP / MODAL de Criação de Enquete */}
       {modalAberto && (
         <div 
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
@@ -231,7 +193,7 @@ function calcularDiasRestantes(dataLimite: string): string {
             className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl bg-white p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Botão de Fechar no topo */}
+      
             <button
               onClick={handleFecharModal}
               className="absolute right-4 top-4 text-slate-400 hover:text-slate-700 transition-colors"

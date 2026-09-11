@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, CheckCircle2, Circle, MessageCircle } from "lucide-react";
+import { Clock, CheckCircle2, Circle, MessageCircle, Lock } from "lucide-react";
 
 export interface EnqueteOpcao {
   _id: string;
@@ -36,6 +36,39 @@ export interface EnqueteProps {
   onComentario?: (texto: string) => Promise<void>;
 }
 
+function calcularDiasRestantes(dataLimite: string): string {
+  if (!dataLimite) return "Sem prazo";
+
+  const hoje = new Date();
+  const limite = new Date(dataLimite);
+
+  if (isNaN(limite.getTime())) {
+    console.error("Formato de data inválido recebido:", dataLimite);
+    return "Data inválida";
+  }
+
+  const diferenca = limite.getTime() - hoje.getTime();
+
+  if (diferenca < 0) {
+    return "Enquete encerrada";
+  }
+
+  const horasRestantes = diferenca / (1000 * 60 * 60);
+
+  if (horasRestantes < 24) {
+    const horasInt = Math.floor(horasRestantes);
+    if (horasInt === 0) return "Encerra em menos de 1 hora";
+    return `Encerra em ${horasInt} hora${horasInt > 1 ? "s" : ""}`;
+  }
+
+  const diasRestantes = Math.ceil(horasRestantes / 24);
+  if (diasRestantes === 1) {
+    return "1 dia restante";
+  } else {
+    return `${diasRestantes} dias restantes`;
+  }
+}
+
 export function EnqueteCard({
   titulo,
   descricao,
@@ -52,8 +85,11 @@ export function EnqueteCard({
 
   const totalVotos = opcoes.reduce((acc, curr) => acc + curr.votos, 0);
 
+  const enqueteEncerrada = new Date(dataLimite).getTime() <= Date.now();
+  const prazoTexto = calcularDiasRestantes(dataLimite);
+
   const handleSelect = (opcaoId: string) => {
-    if (selectedOpcao) return;
+    if (selectedOpcao || enqueteEncerrada) return;
 
     setSelectedOpcao(opcaoId);
     if (onVoto) {
@@ -83,9 +119,17 @@ export function EnqueteCard({
     <Card className="w-full max-w-md border border-slate-200 shadow-sm hover:shadow-md transition-shadow bg-white flex flex-col justify-between">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <Badge className="flex items-center gap-1 font-normal text-amber-50 bg-blue-900">
-            <Clock className="w-3.5 h-3.5 text-amber-50" />
-            <span className="text-xs font-bold">{dataLimite}</span>
+          <Badge
+            className={`flex items-center gap-1 font-normal text-amber-50 ${
+              enqueteEncerrada ? "bg-slate-500" : "bg-blue-900"
+            }`}
+          >
+            {enqueteEncerrada ? (
+              <Lock className="w-3.5 h-3.5 text-amber-50" />
+            ) : (
+              <Clock className="w-3.5 h-3.5 text-amber-50" />
+            )}
+            <span className="text-xs font-bold">{prazoTexto}</span>
           </Badge>
           <span className="text-xs text-slate-400 font-bold">
             {totalVotos} {totalVotos === 1 ? "voto" : "votos"}
@@ -107,19 +151,22 @@ export function EnqueteCard({
           const percentage =
             totalVotos > 0 ? Math.round((opcao.votos / totalVotos) * 100) : 0;
 
+
+
           return (
             <div
               key={opcao._id}
               onClick={() => handleSelect(opcao._id)}
               className={`relative overflow-hidden rounded-lg border p-3 transition-all duration-150 select-none ${
-                selectedOpcao ? "cursor-default" : "cursor-pointer"
+                enqueteEncerrada || selectedOpcao
+                  ? "cursor-default opacity-70"
+                  : "cursor-pointer"
               } ${
                 isSelected
                   ? "border-blue-600 bg-blue-50/40"
                   : "border-slate-200 hover:border-slate-300 bg-slate-50/50"
               }`}
             >
-              {/* Barra de Progresso */}
               <div
                 className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ease-out rounded-l-md ${
                   isSelected ? "bg-blue-200/60" : "bg-slate-200/60"
@@ -127,7 +174,6 @@ export function EnqueteCard({
                 style={{ width: `${percentage}%` }}
               />
 
-              {/* Informações da Opção */}
               <div className="relative z-10 flex items-center justify-between gap-3 text-sm">
                 <div className="flex items-center gap-2.5 min-w-0">
                   {isSelected ? (
@@ -154,6 +200,12 @@ export function EnqueteCard({
             </div>
           );
         })}
+
+        {enqueteEncerrada && (
+          <p className="pt-1 text-center text-xs font-medium text-slate-400">
+            O prazo para votação terminou.
+          </p>
+        )}
       </CardContent>
 
       <CardFooter className="pt-0 flex-col gap-4">
